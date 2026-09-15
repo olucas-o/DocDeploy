@@ -1,0 +1,12 @@
+.git
+.venv
+node_modules
+__pycache__
+*.py[cod]
+*.egg-info
+build
+dist
+.env
+.env.*
+.github
+coverage
