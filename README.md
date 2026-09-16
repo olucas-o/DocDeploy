@@ -53,8 +53,18 @@ python -m pip install -r requirements.txt
 uvicorn main:app --reload --port 8000
 ```
 
-Run API checks with `cd api && npm test`. The repository CI also builds both
-images and calls the API health endpoint on every push and pull request.
+Run the full local quality gate from the repository root:
+
+```bash
+npm run verify
+```
+
+It type-checks the API, compiles the Python worker, and runs all API and worker
+tests. It automatically uses either the root `.venv` or the `worker/.venv`
+created above; install the worker requirements there first. In PowerShell
+environments that block `npm.ps1`, use `npm.cmd run verify`.
+The repository CI runs these checks and builds both images on every push and
+pull request.
 
 ## Public repository checklist
 

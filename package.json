@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "quality": "npm --prefix api run typecheck && node tools/run-worker-check.mjs compile",
+    "test": "npm --prefix api test && node tools/run-worker-check.mjs test",
+    "verify": "npm run quality && npm run test"
   },
   "keywords": [],
   "author": "",
