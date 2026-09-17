@@ -8,6 +8,16 @@
 
 **Input**: User description: "O DocDeploy será uma plataforma para organizações receberem documentos, extraírem informações, conduzirem revisões e manterem um histórico auditável de tudo que aconteceu."
 
+## Clarifications
+
+### Session 2026-09-17
+
+- Q: Quais formatos de arquivo a primeira versão deve aceitar para cadastro e extração? → A: PDF, PNG e JPEG.
+- Q: A primeira versão deve conceder acesso somente pelos papéis predefinidos da organização, sem permissões individuais por documento? → A: Papéis organizacionais fixos, sem exceções por documento.
+- Q: Após uma rejeição, como um documento deve voltar ao processo de revisão? → A: Enviar nova versão e iniciar nova revisão.
+- Q: Qual deve ser o conjunto mínimo de informações estruturadas extraídas de todos os tipos de documento na primeira versão? → A: Identificador, emissor/origem, data relevante e valor quando houver.
+- Q: Qual deve ser o tamanho máximo permitido para cada arquivo enviado? → A: 25 MB.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Receber e organizar documentos (Priority: P1)
@@ -62,33 +72,33 @@ Como auditor ou gestor, quero comparar as versões de um documento e consultar u
 - Uma nova versão enviada enquanto há uma revisão em andamento deve preservar a revisão anterior no histórico e exigir uma decisão sobre a versão que será revisada.
 - Quando a extração não identificar um campo esperado, o documento deve continuar acessível, com o campo marcado como não identificado e encaminhado para conferência.
 - Um usuário sem permissão para consultar um documento, versão ou evento não pode visualizar seu conteúdo nem seus metadados.
-- Um documento rejeitado deve manter seu histórico e ser distinguido de um documento aprovado ou pendente, sem ser confundido com a versão vigente de outro documento.
+- Um documento rejeitado deve manter seu histórico e ser distinguido de um documento aprovado ou pendente; seu retorno ao processo exige o envio de uma nova versão, que inicia uma nova revisão.
 
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
 
 - **FR-001**: O sistema DEVE permitir que usuários autorizados registrem documentos em nome de sua organização, com arquivo, nome, tipo, origem, data de recebimento e responsável.
-- **FR-002**: O sistema DEVE aceitar, no escopo inicial, contratos, notas, certificados, relatórios e documentos cadastrais, permitindo classificar cada registro em um desses tipos.
+- **FR-002**: O sistema DEVE aceitar, no escopo inicial, arquivos de até 25 MB nos formatos PDF, PNG e JPEG para contratos, notas, certificados, relatórios e documentos cadastrais, permitindo classificar cada registro em um desses tipos.
 - **FR-003**: O sistema DEVE atribuir a cada documento um identificador único, uma versão inicial, um status e uma indicação explícita de versão vigente.
-- **FR-004**: O sistema DEVE produzir informações estruturadas a partir do conteúdo de cada documento e indicar os campos ausentes, incertos ou que requerem revisão humana.
+- **FR-004**: O sistema DEVE extrair de cada documento o identificador, emissor ou origem e data relevante, além do valor quando existir, e indicar os campos ausentes, incertos ou que requerem revisão humana.
 - **FR-005**: O sistema DEVE permitir que revisores autorizados consultem, confirmem ou corrijam informações extraídas, com justificativa para cada correção.
 - **FR-006**: O sistema DEVE permitir a criação, atribuição e acompanhamento de pendências de revisão, incluindo responsável, prazo opcional, estado e comentário de resolução.
 - **FR-007**: O sistema DEVE permitir que revisores autorizados aprovem, rejeitem ou devolvam documentos para complemento, exigindo uma justificativa nas decisões de rejeição ou devolução.
-- **FR-008**: O sistema DEVE permitir o envio de uma nova versão de um documento, preservando as versões anteriores, sua relação com o mesmo documento e a versão considerada vigente.
+- **FR-008**: O sistema DEVE permitir o envio de uma nova versão de um documento, preservando as versões anteriores, sua relação com o mesmo documento e a versão considerada vigente; uma nova versão de documento rejeitado DEVE iniciar uma nova revisão.
 - **FR-009**: O sistema DEVE impedir a alteração silenciosa de arquivos e informações de versões anteriores; qualquer correção deve gerar um evento de auditoria vinculado ao autor e à data.
 - **FR-010**: O sistema DEVE manter uma linha do tempo consultável para cada documento, registrando recebimento, extração, alterações, pendências, comentários, decisões e mudanças de versão.
 - **FR-011**: O sistema DEVE permitir que usuários autorizados pesquisem e filtrem documentos por nome, tipo, status, responsável, período de recebimento e presença de pendências.
 - **FR-012**: O sistema DEVE permitir que usuários autorizados exportem o histórico de auditoria filtrado de documentos aos quais têm acesso.
-- **FR-013**: O sistema DEVE restringir a consulta, revisão, decisão, envio de versões e exportação de histórico conforme o papel do usuário dentro de sua organização.
+- **FR-013**: O sistema DEVE restringir a consulta, revisão, decisão, envio de versões e exportação de histórico conforme o papel organizacional do usuário, sem permissões individuais ou exceções por documento no escopo inicial.
 
 ### Key Entities *(include if feature involves data)*
 
 - **Organização**: Unidade que possui os documentos, seus usuários e suas regras de acesso.
-- **Usuário**: Pessoa vinculada a uma organização, com um papel que define as ações permitidas.
+- **Usuário**: Pessoa vinculada a uma organização, com um papel organizacional que define as ações permitidas; o escopo inicial não admite permissões individuais por documento.
 - **Documento**: Registro de negócio que reúne classificação, origem, estado, responsável e seu conjunto de versões.
 - **Versão do documento**: Arquivo recebido em determinado momento, associado a um documento, com indicação de vigência e informações extraídas.
-- **Informação extraída**: Dado identificado em uma versão, incluindo valor, campo de origem, grau de confiança e estado de revisão.
+- **Informação extraída**: Dado identificado em uma versão, incluindo identificador, emissor ou origem, data relevante e valor quando existir, além de campo de origem, grau de confiança e estado de revisão.
 - **Revisão**: Atividade de conferência de uma versão, incluindo responsável, pendências, comentários e decisão.
 - **Evento de auditoria**: Registro cronológico de uma ação relevante, contendo ator, data, ação, objeto afetado e contexto suficiente para reconstituição.
 
@@ -107,6 +117,6 @@ Como auditor ou gestor, quero comparar as versões de um documento e consultar u
 
 - A primeira versão atende organizações que recebem arquivos manualmente; captura direta de e-mails, pastas compartilhadas e outros sistemas será tratada como evolução posterior.
 - A organização já possui usuários identificados e pode atribuir, pelo menos, os papéis de administrador, colaborador, revisor e auditor.
-- Os formatos de arquivo e os campos específicos a extrair por tipo documental serão definidos antes do planejamento; o produto deve sinalizar claramente quando a extração não for possível.
+- O produto deve sinalizar claramente quando a extração não for possível; campos específicos adicionais por tipo documental serão tratados como evolução posterior.
 - A evidência de auditoria deve ser mantida enquanto o documento existir e permanecer acessível apenas a usuários autorizados da organização.
 - Notificações externas, assinatura eletrônica, regras jurídicas específicas de cada país e automação de decisões estão fora do escopo desta primeira funcionalidade.
