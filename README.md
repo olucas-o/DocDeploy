@@ -1,76 +1,34 @@
 # DocDeploy
 
-DocDeploy is a portfolio-ready service foundation for document-processing
-workflows. It separates a public TypeScript API from an internal Python worker,
-keeps secrets outside version control, and includes Docker health checks and CI.
+DocDeploy é uma aplicação multi-tenant para receber documentos, preservar versões, extrair dados, conduzir revisões e manter uma trilha de auditoria verificável.
 
-> The repository currently exposes health endpoints only. Add document upload,
-> validation, and OpenAI-backed processing behind authenticated routes before
-> using it with real customer data.
+## Serviços
 
-## Architecture
+| Serviço | Stack | Responsabilidade |
+| --- | --- | --- |
+| `web` | React + Vite | Upload, pesquisa, revisão e auditoria |
+| `api` | NestJS + TypeORM | Autenticação, regras de domínio e contratos OpenAPI |
+| `worker` | FastAPI + BullMQ Python | Antivírus, parsing, OCR e extração |
+| PostgreSQL | PostgreSQL 17 | Fonte transacional de verdade e RLS |
+| Redis | Redis 8 | BullMQ, locks e progresso operacional |
+| MinIO | S3 compatível | Objetos privados em quarentena, limpos e derivados |
 
-| Service | Stack | Exposure | Purpose |
-| --- | --- | --- | --- |
-| `api` | Fastify + TypeScript | `http://localhost:3000` | Public API boundary and health check |
-| `worker` | FastAPI + Python | Docker network only | Internal processing service |
+## Desenvolvimento local
 
-There is intentionally no database, Redis, or queue yet. Introduce them only
-when the application persists documents, needs retries, or processes jobs
-asynchronously.
-
-## Run with Docker
+Copie `.env.example` para `.env`, altere os segredos e execute:
 
 ```bash
-cp .env.example .env
 docker compose up --build
-```
-
-Verify the API:
-
-```bash
-curl http://localhost:3000/health
-```
-
-Stop the stack with `docker compose down`. The worker is reachable from other
-containers at `http://worker:8000/health`; it is not published to the host.
-
-## Local development
-
-```bash
-cd api
-npm install
-npm run dev
-```
-
-In a second terminal:
-
-```bash
-cd worker
-python -m venv .venv
-# PowerShell: .\.venv\Scripts\Activate.ps1
-python -m pip install -r requirements.txt
-uvicorn main:app --reload --port 8000
-```
-
-Run the full local quality gate from the repository root:
-
-```bash
 npm run verify
 ```
 
-It type-checks the API, compiles the Python worker, and runs all API and worker
-tests. It automatically uses either the root `.venv` or the `worker/.venv`
-created above; install the worker requirements there first. In PowerShell
-environments that block `npm.ps1`, use `npm.cmd run verify`.
-The repository CI runs these checks and builds both images on every push and
-pull request.
+A interface fica em `http://localhost:5173`, a API em `http://localhost:3000/api/v1`, o console MinIO em `http://localhost:9001`, MailHog em `http://localhost:8025` e Prometheus em `http://localhost:9090`.
 
-## Public repository checklist
+Swagger só é publicado em desenvolvimento ou com `ENABLE_SWAGGER=true`. OpenAI permanece desativada quando `OPENAI_API_KEY` está vazia e nunca decide uma revisão automaticamente.
 
-- Copy `.env.example` to `.env`; never commit a real `OPENAI_API_KEY`.
-- Select a license before making the repository public.
-- Add a short project screenshot or architecture diagram when product screens
-  exist.
-- Configure the deployment platform with `OPENAI_API_KEY`, `CORS_ORIGIN`, and
-  `API_PORT` as appropriate.
+## Segurança
+
+- Arquivos permanecem em `quarantine/` até o ClamAV aprová-los.
+- O tenant vem da sessão autenticada; o cliente não escolhe a organização.
+- Não coloque JWTs, credenciais, conteúdo integral ou URLs arbitrárias em jobs.
+- Nunca faça commit de `.env`, credenciais, artefatos gerados ou ambientes virtuais.

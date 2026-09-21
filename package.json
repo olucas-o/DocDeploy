@@ -4,13 +4,15 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "quality": "npm --prefix api run typecheck && node tools/run-worker-check.mjs compile",
-    "test": "npm --prefix api test && node tools/run-worker-check.mjs test",
-    "verify": "npm run quality && npm run test"
+    "quality": "npm --prefix api run typecheck && npm --prefix web run typecheck && node tools/run-worker-check.mjs compile",
+    "test": "npm --prefix api test && npm --prefix web test -- --run && node tools/run-worker-check.mjs test",
+    "contracts": "npm --prefix api run test:contract && node tools/run-worker-check.mjs contract",
+    "verify": "npm run quality && npm run test && npm run contracts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "private": true,
   "type": "commonjs",
   "devDependencies": {
     "@types/node": "^26.5.1",

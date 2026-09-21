@@ -6,10 +6,11 @@ const action = process.argv[2];
 const commands = {
   compile: ["-m", "compileall", "-q", "."],
   test: ["-m", "pytest", "tests"],
+  contract: ["-m", "pytest", "tests", "-m", "contract"],
 };
 
 if (!(action in commands)) {
-  console.error("Usage: node tools/run-worker-check.mjs <compile|test>");
+  console.error("Usage: node tools/run-worker-check.mjs <compile|test|contract>");
   process.exit(2);
 }
 

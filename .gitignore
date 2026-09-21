@@ -11,7 +11,9 @@ wheels/
 
 # Node and TypeScript build output
 node_modules/
-api/dist/
+dist/
+build/
+*.log
 
 # Tooling and local configuration
 .env
@@ -21,3 +23,11 @@ api/dist/
 .mypy_cache/
 .coverage
 coverage/
+
+# Editors and operating systems
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.tmp
+*.swp
