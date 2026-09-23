@@ -17,6 +17,7 @@ export class ProcessingRun {
   @Column({ default: 0, type: "smallint" }) attempts!: number;
   @Column({ name: "correlation_id", type: "uuid" }) correlationId!: string;
   @Column({ name: "sanitized_error", nullable: true, type: "jsonb" }) sanitizedError!: Record<string, unknown> | null;
+  @Column({ nullable: true, type: "jsonb" }) result!: Record<string, unknown> | null;
   @CreateDateColumn({ name: "created_at", type: "timestamptz" }) createdAt!: Date;
   @UpdateDateColumn({ name: "updated_at", type: "timestamptz" }) updatedAt!: Date;
 }

@@ -24,6 +24,9 @@ build/
 .coverage
 coverage/
 
+# Abacus AI CLI local session config
+.abacusai/
+
 # Editors and operating systems
 .vscode/
 .idea/

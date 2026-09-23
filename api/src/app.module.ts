@@ -12,6 +12,7 @@ import { AuthController } from "./modules/auth/auth.controller.js";
 import { AuthService } from "./modules/auth/auth.service.js";
 import { DocumentsModule } from "./modules/documents/documents.module.js";
 import { ProcessingModule } from "./modules/processing/processing.module.js";
+import { ReviewsModule } from "./modules/reviews/reviews.module.js";
 import { HealthController } from "./modules/health/health.controller.js";
 
 @Module({
@@ -20,7 +21,7 @@ import { HealthController } from "./modules/health/health.controller.js";
     LoggerModule,
     PassportModule,
     JwtModule.register({ global: true, secret: jwtSecret() }),
-    ...(process.env.DATABASE_URL ? [DatabaseModule, DocumentsModule, ProcessingModule] : []),
+    ...(process.env.DATABASE_URL ? [DatabaseModule, DocumentsModule, ProcessingModule, ReviewsModule] : []),
   ],
   controllers: [HealthController, ...(process.env.DATABASE_URL ? [AuthController] : [])],
   providers: [MetricsService, JwtStrategy, ...(process.env.DATABASE_URL ? [AuthService] : [])],

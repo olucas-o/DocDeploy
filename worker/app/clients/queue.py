@@ -19,5 +19,14 @@ def retry_delay(attempt: int, base_seconds: float = 1.0) -> float:
 
 
 def classify_failure(code: str) -> ProcessingFailure:
-    permanent = {"MALWARE", "UNSUPPORTED_FORMAT", "CORRUPT_FILE", "TENANT_MISMATCH", "UNKNOWN_SCHEMA"}
+    permanent = {
+        "MALWARE",
+        "UNSUPPORTED_FORMAT",
+        "CORRUPT_FILE",
+        "TENANT_MISMATCH",
+        "UNKNOWN_SCHEMA",
+        "ENCRYPTED_FILE",
+        "EXECUTABLE_CONTENT",
+        "FILE_TOO_LARGE",
+    }
     return ProcessingFailure(code=code, category="permanent" if code in permanent else "dependency", retryable=code not in permanent)

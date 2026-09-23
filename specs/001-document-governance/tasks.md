@@ -101,22 +101,22 @@ description: "Tarefas executáveis para Governança de Documentos"
 
 ### Tests for User Story 2
 
-- [ ] T040 [P] [US2] Criar teste de contrato de consulta de resultados, correção de campo, pendência e decisão de revisão em `api/test/contract/reviews.contract-spec.ts`
+- [X] T040 [P] [US2] Criar teste de contrato de consulta de resultados, correção de campo, pendência e decisão de revisão em `api/test/contract/reviews.contract-spec.ts`
 - [ ] T041 [P] [US2] Criar teste de integração do pipeline ClamAV, extração PDF, OCR condicional, falha segura e promoção de artefato em `worker/tests/integration/test_document_pipeline.py`
-- [ ] T042 [P] [US2] Criar teste de integração de idempotência de run, retry, resultado compactado e persistência única na API em `api/test/integration/processing-results.integration-spec.ts`
+- [X] T042 [P] [US2] Criar teste de integração de idempotência de run, retry, resultado compactado e persistência única na API em `api/test/integration/processing-results.integration-spec.ts`
 - [ ] T043 [P] [US2] Criar teste E2E de revisão que corrige campo, cria/resolve pendência e aprova/devolve documento em `web/src/test/document-review.e2e.ts`
 
 ### Implementation for User Story 2
 
 - [ ] T044 [P] [US2] Criar entidades `ExtractedField`, `Review`, `ReviewTask` e `ReviewComment` em `api/src/database/entities/extracted-field.entity.ts`, `api/src/database/entities/review.entity.ts`, `api/src/database/entities/review-task.entity.ts` e `api/src/database/entities/review-comment.entity.ts`
-- [ ] T045 [US2] Criar migration que preserva valor/origem anterior na correção humana e exige justificativa para rejeição/devolução em `api/src/database/migrations/004-reviews-and-extraction.ts`
+- [X] T045 [US2] Criar migration que preserva valor/origem anterior na correção humana e exige justificativa para rejeição/devolução em `api/src/database/migrations/004-reviews-and-extraction.ts`
 - [ ] T046 [US2] Implementar consumidor de scan que valida assinatura/formato/limites, usa ClamAV privado e mantém conteúdo inacessível em falha (`fail closed`) em `worker/app/processors/virus_scan.py`
 - [ ] T047 [US2] Implementar extração local PyMuPDF, pdfplumber apenas para tabela/layout, OCR Tesseract controlado e limite Pillow de pixels em `worker/app/processors/extraction.py`, `worker/app/processors/ocr.py` e `worker/app/processors/image_safety.py`
 - [ ] T048 [US2] Implementar promoção para `clean/` somente após `SCAN_PASSED`, artefatos determinísticos e resultado compacto com referências/hash/páginas em `worker/app/processors/artifact_persistence.py` e `worker/app/consumers/document_processing.py`
-- [ ] T049 [US2] Implementar persistência API de `ProcessingRun`, `ExtractedField` e transições monotônicas, revalidando tenant, versão, hash e chave de idempotência em `api/src/modules/processing/processing-results.service.ts`
-- [ ] T050 [US2] Implementar extração mínima de identificador, emissor/origem, data relevante e valor quando houver, marcando campos ausentes/incertos para revisão, em `api/src/modules/processing/extracted-fields.service.ts`
-- [ ] T051 [US2] Implementar workflow de revisão, correção auditada, pendência com responsável/prazo opcional/resolução e decisão autorizada em `api/src/modules/reviews/reviews.service.ts` e `api/src/modules/reviews/reviews.controller.ts`
-- [ ] T052 [P] [US2] Implementar consulta de status/progresso persistido e solicitação administrativa auditada de reprocessamento em `api/src/modules/processing/processing.controller.ts`
+- [X] T049 [US2] Implementar persistência API de `ProcessingRun`, `ExtractedField` e transições monotônicas, revalidando tenant, versão, hash e chave de idempotência em `api/src/modules/processing/processing-results.service.ts`
+- [X] T050 [US2] Implementar extração mínima de identificador, emissor/origem, data relevante e valor quando houver, marcando campos ausentes/incertos para revisão, em `api/src/modules/processing/extracted-fields.service.ts`
+- [X] T051 [US2] Implementar workflow de revisão, correção auditada, pendência com responsável/prazo opcional/resolução e decisão autorizada em `api/src/modules/reviews/reviews.service.ts` e `api/src/modules/reviews/reviews.controller.ts`
+- [X] T052 [P] [US2] Implementar consulta de status/progresso persistido e solicitação administrativa auditada de reprocessamento em `api/src/modules/processing/processing.controller.ts`
 - [ ] T053 [P] [US2] Implementar página de detalhe que mostra progresso, origem/página/confiança do campo e acesso ao original somente após scan em `web/src/features/documents/DocumentDetailPage.tsx`
 - [ ] T054 [P] [US2] Implementar formulário de revisão, correção com justificativa, pendências, comentários e decisões em `web/src/features/reviews/ReviewPanel.tsx` e `web/src/features/reviews/review-api.ts`
 

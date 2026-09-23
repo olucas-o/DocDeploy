@@ -5,6 +5,7 @@ export class ReviewsAndExtraction004 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
       ALTER TABLE processing_runs ADD CONSTRAINT fk_processing_run_version FOREIGN KEY (document_version_id) REFERENCES document_versions(id);
+      ALTER TABLE processing_runs ADD COLUMN result jsonb;
       CREATE TABLE extracted_fields (
         id uuid PRIMARY KEY DEFAULT gen_random_uuid(), organization_id uuid NOT NULL REFERENCES organizations(id), document_version_id uuid NOT NULL REFERENCES document_versions(id),
         field_key varchar(64) NOT NULL, typed_value jsonb, original_value jsonb, previous_values jsonb NOT NULL DEFAULT '[]',
@@ -42,6 +43,6 @@ export class ReviewsAndExtraction004 implements MigrationInterface {
     }
   }
   async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query("ALTER TABLE processing_runs DROP CONSTRAINT IF EXISTS fk_processing_run_version; DROP TABLE IF EXISTS review_comments, review_tasks, reviews, extracted_fields CASCADE");
+    await queryRunner.query("ALTER TABLE processing_runs DROP CONSTRAINT IF EXISTS fk_processing_run_version; ALTER TABLE processing_runs DROP COLUMN IF EXISTS result; DROP TABLE IF EXISTS review_comments, review_tasks, reviews, extracted_fields CASCADE");
   }
 }

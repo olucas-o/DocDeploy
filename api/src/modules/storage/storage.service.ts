@@ -46,4 +46,12 @@ export class StorageService {
     if (key.startsWith("quarantine/")) throw new Error("Quarantined objects cannot be read");
     return getSignedUrl(this.client, new GetObjectCommand({ Bucket: this.bucket, Key: key }), { expiresIn: 300 });
   }
+
+  async readDerivedJson(organizationId: string, key: string): Promise<unknown> {
+    this.assertTenantKey(organizationId, key);
+    if (!key.startsWith("derived/")) throw new Error("Only derived artifacts can be read as compact JSON results");
+    const object = await this.client.send(new GetObjectCommand({ Bucket: this.bucket, Key: key }));
+    const body = await object.Body?.transformToString("utf-8");
+    return body ? JSON.parse(body) : null;
+  }
 }
