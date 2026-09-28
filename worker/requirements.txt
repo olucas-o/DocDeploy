@@ -15,8 +15,9 @@ pillow==12.0.0
 prometheus-client==0.23.1
 pymupdf==1.26.5
 pytesseract==0.3.13
-redis==7.0.1
+redis==5.2.1
 bullmq==2.15.0
+boto3==1.42.0
 pydantic==2.13.5
 pydantic_core==2.46.5
 pytest==9.0.2

@@ -37,6 +37,8 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/v1/health').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
       interval: 10s
@@ -69,7 +71,7 @@ services:
       S3_ACCESS_KEY: ${MINIO_ROOT_USER:-docdeploy}
       S3_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-docdeploy-local-only}
       S3_BUCKET: docdeploy-private
-      CLAMAV_HOST: clamav
+      CLAMD_HOST: clamav
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
     expose:
       - "8000"
@@ -78,6 +80,8 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
       clamav:
         condition: service_healthy
     healthcheck:
@@ -132,6 +136,21 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
+
+  minio-init:
+    image: minio/mc:latest
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - >-
+        mc alias set local http://minio:9000 "$${MINIO_ROOT_USER}" "$${MINIO_ROOT_PASSWORD}" &&
+        mc mb --ignore-existing local/docdeploy-private
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-docdeploy}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-docdeploy-local-only}
+    depends_on:
+      minio:
+        condition: service_healthy
+    restart: "no"
 
   clamav:
     image: clamav/clamav:stable

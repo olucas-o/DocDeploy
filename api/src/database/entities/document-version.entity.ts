@@ -2,8 +2,8 @@ import { Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn, Unique
 
 @Entity({ name: "document_versions" })
 @Unique("uq_document_version_number", ["documentId", "number"])
-@Unique("uq_document_version_hash", ["documentId", "sha256"])
 @Index("ix_document_versions_organization_document", ["organizationId", "documentId"])
+@Index("ix_document_versions_document_hash", ["documentId", "sha256"])
 export class DocumentVersion {
   @PrimaryGeneratedColumn("uuid") id!: string;
   @Column({ name: "organization_id", type: "uuid" }) organizationId!: string;

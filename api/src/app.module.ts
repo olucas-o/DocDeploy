@@ -14,6 +14,8 @@ import { DocumentsModule } from "./modules/documents/documents.module.js";
 import { ProcessingModule } from "./modules/processing/processing.module.js";
 import { ReviewsModule } from "./modules/reviews/reviews.module.js";
 import { HealthController } from "./modules/health/health.controller.js";
+import { AuditModule } from "./modules/audit/audit.module.js";
+import { OrganizationModule } from "./modules/organization/organization.module.js";
 
 @Module({
   imports: [
@@ -21,7 +23,7 @@ import { HealthController } from "./modules/health/health.controller.js";
     LoggerModule,
     PassportModule,
     JwtModule.register({ global: true, secret: jwtSecret() }),
-    ...(process.env.DATABASE_URL ? [DatabaseModule, DocumentsModule, ProcessingModule, ReviewsModule] : []),
+    ...(process.env.DATABASE_URL ? [DatabaseModule, DocumentsModule, ProcessingModule, ReviewsModule, AuditModule, OrganizationModule] : []),
   ],
   controllers: [HealthController, ...(process.env.DATABASE_URL ? [AuthController] : [])],
   providers: [MetricsService, JwtStrategy, ...(process.env.DATABASE_URL ? [AuthService] : [])],

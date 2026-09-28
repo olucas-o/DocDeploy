@@ -11,10 +11,11 @@ import { DatabaseModule } from "../../database/database.module.js";
 import { AuditService } from "../audit/audit.service.js";
 import { ReviewsController } from "./reviews.controller.js";
 import { ReviewsService } from "./reviews.service.js";
+import { NotificationsService } from "../notifications/notifications.service.js";
 
 @Module({
   imports: [DatabaseModule, TypeOrmModule.forFeature([Review, ReviewTask, ReviewComment, ExtractedField, OrganizationMembership, AuditEvent])],
   controllers: [ReviewsController],
-  providers: [ReviewsService, AuditService],
+  providers: [ReviewsService, AuditService, NotificationsService],
 })
 export class ReviewsModule {}

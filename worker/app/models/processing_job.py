@@ -19,6 +19,7 @@ class ProcessingOptions(BaseModel):
     model_config = ConfigDict(extra="forbid", populate_by_name=True)
     processor_version: str = Field(alias="processorVersion", min_length=1)
     ocr_languages: list[str] = Field(alias="ocrLanguages", max_length=5)
+    ai_opt_in: bool = Field(default=False, alias="aiOptIn")
 
 
 class ProcessingJob(BaseModel):

@@ -10,11 +10,12 @@ import { OrganizationMembership } from "../../database/entities/organization-mem
 import { TenantTransactionService } from "../../database/tenant-transaction.service.js";
 import { AuditService } from "../audit/audit.service.js";
 import { StorageService } from "../storage/storage.service.js";
+import { NotificationsService } from "../notifications/notifications.service.js";
 import type { CreateDocumentDto } from "./dto/create-document.dto.js";
 
 export interface DocumentSearchFilters {
   name?: string; type?: string; status?: string; responsibleId?: string;
-  receivedFrom?: string; receivedTo?: string; hasPendingTasks?: boolean;
+  receivedFrom?: string; receivedTo?: string; hasPendingTasks?: boolean | string;
 }
 
 export function buildDocumentSearch(organizationId: string, filters: DocumentSearchFilters): DocumentSearchFilters & { organizationId: string } {
@@ -27,7 +28,7 @@ export function buildDocumentSearch(organizationId: string, filters: DocumentSea
 
 @Injectable()
 export class DocumentsService {
-  constructor(private readonly transactions: TenantTransactionService, private readonly storage: StorageService, private readonly audit: AuditService) {}
+  constructor(private readonly transactions: TenantTransactionService, private readonly storage: StorageService, private readonly audit: AuditService, private readonly notifications: NotificationsService) {}
 
   async create(organizationId: string, actorId: string, correlationId: string, dto: CreateDocumentDto) {
     const documentId = randomUUID();
@@ -46,8 +47,8 @@ export class DocumentsService {
         id: versionId, organizationId, documentId, number: 1, objectKey, state: "UPLOADING", createdBy: actorId,
         sha256: dto.sha256, size: String(dto.size), detectedType: dto.contentType, objectVersionId: null, replacementReason: null,
       });
-      await manager.update(Document, { id: documentId }, { currentVersionId: versionId });
-      await this.audit.append(manager, { organizationId, actorId, actorType: "human", action: "document.created", resourceType: "document", resourceId: documentId, version: 1, result: "accepted", correlationId });
+      const event = await this.audit.append(manager, { organizationId, actorId, actorType: "human", action: "document.created", resourceType: "document", resourceId: documentId, version: 1, result: "accepted", correlationId });
+      await this.notifications.fromBusinessEvent(manager, event, dto.responsibleId);
       return { id: documentId, status: "UPLOADING", currentVersion: { id: versionId, number: 1, state: "UPLOADING" }, upload: { ...upload, objectKey, expiresInSeconds: 300 } };
     });
   }
@@ -74,6 +75,10 @@ export class DocumentsService {
     if (filters.responsibleId) query.andWhere("document.responsibleId = :responsibleId", { responsibleId: filters.responsibleId });
     if (filters.receivedFrom) query.andWhere("document.receivedAt >= :receivedFrom", { receivedFrom: filters.receivedFrom });
     if (filters.receivedTo) query.andWhere("document.receivedAt <= :receivedTo", { receivedTo: filters.receivedTo });
-    if (filters.hasPendingTasks === true) query.andWhere("FALSE");
+    if (filters.hasPendingTasks === true || filters.hasPendingTasks === "true") {
+      query.andWhere(`EXISTS (SELECT 1 FROM reviews review JOIN review_tasks task ON task.review_id = review.id AND task.organization_id = review.organization_id WHERE review.document_id = document.id AND review.organization_id = :pendingOrganizationId AND task.state = 'OPEN')`, { pendingOrganizationId: filters.organizationId });
+    } else if (filters.hasPendingTasks === false || filters.hasPendingTasks === "false") {
+      query.andWhere(`NOT EXISTS (SELECT 1 FROM reviews review JOIN review_tasks task ON task.review_id = review.id AND task.organization_id = review.organization_id WHERE review.document_id = document.id AND review.organization_id = :pendingOrganizationId AND task.state = 'OPEN')`, { pendingOrganizationId: filters.organizationId });
+    }
   }
 }

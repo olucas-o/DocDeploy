@@ -90,9 +90,16 @@ export class AuthService {
       throw new UnauthorizedException("Invalid session");
     }
     const tokens = await this.issueTokens(session.user_id, session.organization_id, session.permissions, session.token_family);
-    await this.withTenant(session.organization_id, async (manager) => {
-      await manager.update(Session, { id: session.session_id }, { refreshTokenHash: tokens.refreshTokenHash, expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) });
+    const rotated = await this.withTenant(session.organization_id, async (manager) => {
+      const rows = await manager.query<{ id: string }[]>(
+        `UPDATE sessions SET refresh_token_hash = $1, expires_at = $2
+         WHERE id = $3 AND organization_id = $4 AND refresh_token_hash = $5 AND revoked_at IS NULL AND expires_at > now()
+         RETURNING id`,
+        [tokens.refreshTokenHash, new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), session.session_id, session.organization_id, session.refresh_token_hash],
+      );
+      return rows.length === 1;
     });
+    if (!rotated) throw new UnauthorizedException("Invalid session");
     return { ...tokens, sessionId: session.session_id };
   }
 

@@ -5,6 +5,7 @@ import { BadRequestException, Injectable, NotFoundException } from "@nestjs/comm
 import { Document } from "../../database/entities/document.entity.js";
 import { DocumentVersion } from "../../database/entities/document-version.entity.js";
 import { ProcessingRun } from "../../database/entities/processing-run.entity.js";
+import { StoredArtifact } from "../../database/entities/stored-artifact.entity.js";
 import { Review } from "../../database/entities/review.entity.js";
 import { TenantTransactionService } from "../../database/tenant-transaction.service.js";
 import { AuditService } from "../audit/audit.service.js";
@@ -99,6 +100,18 @@ export class ProcessingResultsService {
       run.sanitizedError = result.outcome === "rejected" ? { code: "PROCESSING_REJECTED", category: "permanent" } : null;
       await manager.save(run);
 
+      if (result.outcome === "completed") {
+        for (const objectKey of result.artifactRefs.filter((reference) => reference.startsWith(`clean/${result.tenantId}/`))) {
+          const existing = await manager.findOne(StoredArtifact, { where: { organizationId: result.tenantId, documentVersionId: version.id, objectKey } });
+          if (!existing && version.sha256 && version.size && version.detectedType) {
+            await manager.insert(StoredArtifact, {
+              organizationId: result.tenantId, documentVersionId: version.id, zone: "clean", objectKey,
+              sha256: result.checksum, size: version.size, contentType: version.detectedType, origin: "processor", retentionUntil: null,
+            });
+          }
+        }
+      }
+
       await this.audit.append(manager, {
         organizationId: result.tenantId,
         actorId: null,
@@ -117,7 +130,16 @@ export class ProcessingResultsService {
         }
         version.state = "READY_FOR_REVIEW";
         await manager.save(version);
-        await manager.update(Document, { id: version.documentId }, { status: "READY_FOR_REVIEW" });
+        await manager.query("SELECT id FROM documents WHERE id = $1 AND organization_id = $2 FOR UPDATE", [version.documentId, result.tenantId]);
+        const document = await manager.findOne(Document, { where: { id: version.documentId, organizationId: result.tenantId } });
+        const currentVersion = document?.currentVersionId
+          ? await manager.findOne(DocumentVersion, { where: { id: document.currentVersionId, organizationId: result.tenantId } })
+          : null;
+        if (document && (!currentVersion || version.number > currentVersion.number)) {
+          document.currentVersionId = version.id;
+          document.status = "READY_FOR_REVIEW";
+          await manager.save(document);
+        }
         const existingReview = await manager.findOne(Review, { where: { organizationId: result.tenantId, documentVersionId: version.id } });
         if (!existingReview) {
           await manager.insert(Review, {
@@ -128,7 +150,15 @@ export class ProcessingResultsService {
       } else {
         version.state = "REJECTED";
         await manager.save(version);
-        await manager.update(Document, { id: version.documentId }, { status: "REJECTED" });
+        await manager.query("SELECT id FROM documents WHERE id = $1 AND organization_id = $2 FOR UPDATE", [version.documentId, result.tenantId]);
+        const document = await manager.findOne(Document, { where: { id: version.documentId, organizationId: result.tenantId } });
+        const currentVersion = document?.currentVersionId
+          ? await manager.findOne(DocumentVersion, { where: { id: document.currentVersionId, organizationId: result.tenantId } })
+          : null;
+        if (document) {
+          document.status = currentVersion?.state ?? "REJECTED";
+          await manager.save(document);
+        }
       }
 
       return run;

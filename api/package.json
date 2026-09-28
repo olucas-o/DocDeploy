@@ -8,6 +8,7 @@
     "dev": "nest start --watch",
     "start": "node dist/main.js",
     "start:migrate": "node dist/database/run-migrations.js",
+    "seed:dev": "npm run build && node dist/database/seed-dev.js",
     "migration:run": "typeorm-ts-node-esm migration:run -d src/database/data-source.ts",
     "test": "jest --runInBand --passWithNoTests",
     "test:contract": "jest --runInBand --testPathPatterns=contract --passWithNoTests",

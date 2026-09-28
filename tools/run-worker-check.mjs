@@ -16,10 +16,10 @@ if (!(action in commands)) {
 
 const virtual_environment_pythons = process.platform === "win32"
   ? [
-      join(".venv", "Scripts", "python.exe"),
       join("worker", ".venv", "Scripts", "python.exe"),
+      join(".venv", "Scripts", "python.exe"),
     ]
-  : [join(".venv", "bin", "python"), join("worker", ".venv", "bin", "python")];
+  : [join("worker", ".venv", "bin", "python"), join(".venv", "bin", "python")];
 const virtual_environment_python = virtual_environment_pythons.find(existsSync);
 const python = virtual_environment_python
   ? resolve(virtual_environment_python)

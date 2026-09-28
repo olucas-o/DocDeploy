@@ -9,8 +9,10 @@ import { ProcessingRun } from "../../database/entities/processing-run.entity.js"
 import { StoredArtifact } from "../../database/entities/stored-artifact.entity.js";
 import { DatabaseModule } from "../../database/database.module.js";
 import { AuditService } from "../audit/audit.service.js";
+import { NotificationsService } from "../notifications/notifications.service.js";
 import { DocumentVersionsController } from "../document-versions/document-versions.controller.js";
 import { DocumentVersionsService } from "../document-versions/document-versions.service.js";
+import { DocumentVersionQueryService } from "../document-versions/document-version-query.service.js";
 import { StorageService } from "../storage/storage.service.js";
 import { DocumentsController } from "./documents.controller.js";
 import { DocumentsService } from "./documents.service.js";
@@ -18,6 +20,6 @@ import { DocumentsService } from "./documents.service.js";
 @Module({
   imports: [DatabaseModule, TypeOrmModule.forFeature([Document, DocumentVersion, StoredArtifact, ProcessingRun, OutboxEvent, AuditEvent])],
   controllers: [DocumentsController, DocumentVersionsController],
-  providers: [DocumentsService, DocumentVersionsService, StorageService, AuditService],
+  providers: [DocumentsService, DocumentVersionsService, DocumentVersionQueryService, StorageService, AuditService, NotificationsService],
 })
 export class DocumentsModule {}

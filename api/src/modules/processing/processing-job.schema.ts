@@ -16,7 +16,7 @@ export const processingJobSchema = z.object({
   idempotencyKey: z.string().min(1).max(255),
   tenantId: z.uuid(), documentId: z.uuid(), documentVersionId: z.uuid(),
   source: sourceSchema,
-  processing: z.object({ processorVersion: z.string().min(1), ocrLanguages: z.array(z.string().regex(/^[a-z]{3}$/)).max(5) }).strict(),
+  processing: z.object({ processorVersion: z.string().min(1), ocrLanguages: z.array(z.string().regex(/^[a-z]{3}$/)).max(5), aiOptIn: z.boolean().optional() }).strict(),
   requestedAt: z.iso.datetime(),
 }).strict();
 

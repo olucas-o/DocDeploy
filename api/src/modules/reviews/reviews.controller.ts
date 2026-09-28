@@ -11,6 +11,7 @@ import { CorrectFieldDto } from "./dto/correct-field.dto.js";
 import { CreateReviewTaskDto } from "./dto/create-review-task.dto.js";
 import { ResolveReviewTaskDto } from "./dto/resolve-review-task.dto.js";
 import { ReviewDecisionDto } from "./dto/review-decision.dto.js";
+import { CreateReviewCommentDto } from "./dto/create-review-comment.dto.js";
 import { ReviewsService } from "./reviews.service.js";
 
 type AuthRequest = Request & { user: AuthenticatedPrincipal; correlationId?: string };
@@ -35,6 +36,11 @@ export class ReviewsController {
   @Post("reviews/:id/tasks") @RequirePermissions("reviews:manage-tasks")
   createTask(@Req() request: AuthRequest, @Param("id") reviewId: string, @Body() body: CreateReviewTaskDto) {
     return this.reviews.createTask(request.user.organizationId, request.user.userId, request.correlationId ?? fallbackCorrelation, reviewId, body);
+  }
+
+  @Post("reviews/:id/comments") @RequirePermissions("reviews:manage-tasks")
+  addComment(@Req() request: AuthRequest, @Param("id") reviewId: string, @Body() body: CreateReviewCommentDto) {
+    return this.reviews.addComment(request.user.organizationId, request.user.userId, request.correlationId ?? fallbackCorrelation, reviewId, body.message);
   }
 
   @Patch("review-tasks/:id") @RequirePermissions("reviews:manage-tasks")

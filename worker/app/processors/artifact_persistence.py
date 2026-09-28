@@ -56,6 +56,7 @@ def build_completion_result(
     duration_ms: int,
     page_count: int | None = None,
     field_count: int | None = None,
+    ai_suggestion_count: int | None = None,
     outcome: str = "completed",
 ) -> dict[str, Any]:
     """Build the compact completion payload defined by the processing-queue contract.
@@ -75,6 +76,8 @@ def build_completion_result(
         result["pageCount"] = page_count
     if field_count is not None:
         result["fieldCount"] = field_count
+    if ai_suggestion_count is not None:
+        result["aiSuggestionCount"] = ai_suggestion_count
     return result
 
 

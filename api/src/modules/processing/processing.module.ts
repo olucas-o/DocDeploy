@@ -17,6 +17,7 @@ import { ProcessingController } from "./processing.controller.js";
 import { ProcessingReconcilerService } from "./processing-reconciler.service.js";
 import { ProcessingResultsService } from "./processing-results.service.js";
 import { QueueEventsListener } from "./queue-events.listener.js";
+import { StorageService } from "../storage/storage.service.js";
 import { redisConnection } from "./redis.connection.js";
 
 @Module({
@@ -27,7 +28,7 @@ import { redisConnection } from "./redis.connection.js";
     BullModule.registerQueue({ name: "document-processing.v1" }),
   ],
   controllers: [ProcessingController],
-  providers: [OutboxPublisherService, ProcessingReconcilerService, QueueEventsListener, ProcessingResultsService, ExtractedFieldsService, AuditService],
+  providers: [OutboxPublisherService, ProcessingReconcilerService, QueueEventsListener, ProcessingResultsService, ExtractedFieldsService, AuditService, StorageService],
   exports: [OutboxPublisherService, ProcessingReconcilerService, QueueEventsListener, ProcessingResultsService, ExtractedFieldsService],
 })
 export class ProcessingModule {}

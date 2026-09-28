@@ -12,6 +12,7 @@ import type { CorrectFieldDto } from "./dto/correct-field.dto.js";
 import type { CreateReviewTaskDto } from "./dto/create-review-task.dto.js";
 import { reviewDecisions, type ReviewDecisionDto } from "./dto/review-decision.dto.js";
 import type { ResolveReviewTaskDto } from "./dto/resolve-review-task.dto.js";
+import { NotificationsService } from "../notifications/notifications.service.js";
 
 const decisionsRequiringJustification = new Set(["REJECTED", "RETURNED_FOR_COMPLEMENT"]);
 
@@ -30,14 +31,15 @@ export function validateFieldCorrection(input: { value: string; justification: s
 
 @Injectable()
 export class ReviewsService {
-  constructor(private readonly transactions: TenantTransactionService, private readonly audit: AuditService) {}
+  constructor(private readonly transactions: TenantTransactionService, private readonly audit: AuditService, private readonly notifications: NotificationsService) {}
 
-  async findByDocumentVersion(organizationId: string, documentVersionId: string): Promise<{ review: Review | null; fields: ExtractedField[]; tasks: ReviewTask[] }> {
+  async findByDocumentVersion(organizationId: string, documentVersionId: string): Promise<{ review: Review | null; fields: ExtractedField[]; tasks: ReviewTask[]; comments: ReviewComment[] }> {
     return this.transactions.run(organizationId, async (manager) => {
       const review = await manager.findOne(Review, { where: { organizationId, documentVersionId } });
       const fields = await manager.find(ExtractedField, { where: { organizationId, documentVersionId }, order: { key: "ASC" } });
       const tasks = review ? await manager.find(ReviewTask, { where: { organizationId, reviewId: review.id }, order: { createdAt: "ASC" } }) : [];
-      return { review, fields, tasks };
+      const comments = review ? await manager.find(ReviewComment, { where: { organizationId, reviewId: review.id }, order: { createdAt: "ASC" } }) : [];
+      return { review, fields, tasks, comments };
     });
   }
 
@@ -74,18 +76,20 @@ export class ReviewsService {
     return this.transactions.run(organizationId, async (manager) => {
       const review = await manager.findOne(Review, { where: { id: reviewId, organizationId } });
       if (!review) throw new NotFoundException("Review not found");
-      const responsibleIsMember = await manager.exists(OrganizationMembership, { where: { organizationId, userId: dto.responsibleId, status: "active" } });
+      const responsibleId = dto.responsibleId ?? actorId;
+      const responsibleIsMember = await manager.exists(OrganizationMembership, { where: { organizationId, userId: responsibleId, status: "active" } });
       if (!responsibleIsMember) throw new NotFoundException("Responsible member not found");
       const task = manager.create(ReviewTask, {
-        organizationId, reviewId, title: dto.title, responsibleId: dto.responsibleId,
+        organizationId, reviewId, title: dto.title, responsibleId,
         dueAt: dto.dueAt ? new Date(dto.dueAt) : null, state: "OPEN", resolution: null, resolvedAt: null,
       });
       const saved = await manager.save(task);
       if (review.state === "PENDING") { review.state = "IN_REVIEW"; await manager.save(review); }
-      await this.audit.append(manager, {
+      const event = await this.audit.append(manager, {
         organizationId, actorId, actorType: "human", action: "review_task.created", resourceType: "reviewTask",
         resourceId: saved.id, result: "accepted", correlationId, metadata: { reviewId },
       });
+      await this.notifications.fromBusinessEvent(manager, event, responsibleId);
       return saved;
     });
   }
@@ -111,6 +115,16 @@ export class ReviewsService {
     });
   }
 
+  async addComment(organizationId: string, actorId: string, correlationId: string, reviewId: string, message: string): Promise<ReviewComment> {
+    return this.transactions.run(organizationId, async (manager) => {
+      const review = await manager.findOne(Review, { where: { id: reviewId, organizationId } });
+      if (!review) throw new NotFoundException("Review not found");
+      const comment = await manager.save(manager.create(ReviewComment, { organizationId, reviewId, reviewTaskId: null, authorId: actorId, message, extractedFieldId: null }));
+      await this.audit.append(manager, { organizationId, actorId, actorType: "human", action: "review.comment_added", resourceType: "review", resourceId: reviewId, result: "accepted", correlationId, metadata: { commentId: comment.id } });
+      return comment;
+    });
+  }
+
   /**
    * Authorized decision on a review: approve, reject or return for complement. Rejecting or
    * returning always requires a justification, and no decision is allowed while pendencies remain
@@ -131,12 +145,13 @@ export class ReviewsService {
       review.decidedAt = new Date();
       review.responsibleId = review.responsibleId ?? actorId;
       const saved = await manager.save(review);
-      await this.audit.append(manager, {
+      const event = await this.audit.append(manager, {
         organizationId, actorId, actorType: "human", action: "review.decided", resourceType: "review",
         resourceId: review.id, result: dto.decision.toLowerCase(), correlationId,
         metadata: { documentVersionId: review.documentVersionId },
         ...(dto.justification ? { reason: dto.justification } : {}),
       });
+      await this.notifications.fromBusinessEvent(manager, event, review.responsibleId ?? actorId);
       return saved;
     });
   }

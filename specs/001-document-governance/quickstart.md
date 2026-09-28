@@ -11,11 +11,12 @@ Este guia descreve a validação esperada após implementação. Ele não substi
 
 ## Subir o ambiente local
 
-1. Preparar dependências de web, API e worker conforme seus manifestos.
-2. Executar `docker compose up --build` na raiz.
-3. Confirmar saúde de web, API, worker, PostgreSQL, Redis, MinIO, ClamAV, MailHog e Prometheus.
-4. Aplicar migrations pelo comando versionado da API e carregar somente dados de demonstração não sensíveis.
-5. Abrir a interface, a documentação OpenAPI protegida e o painel de e-mail de desenvolvimento, se habilitados.
+1. Copiar `.env.example` para `.env` e substituir os valores locais se necessário.
+2. Executar `docker compose up --build --wait` na raiz. O Compose executa migrations no serviço `migrate` e cria `docdeploy-private` via `minio-init`.
+3. Confirmar saúde de API e worker com `docker compose ps`; PostgreSQL, Redis, MinIO e ClamAV devem estar saudáveis. MailHog e Prometheus ficam disponíveis em `localhost:8025` e `localhost:9090`.
+4. Criar uma conta administrativa local, se necessário, definindo `BOOTSTRAP_DEV_ALLOWED=true`, `MIGRATIONS_DATABASE_URL`, `BOOTSTRAP_ORG_NAME`, `BOOTSTRAP_USER_EMAIL` e `BOOTSTRAP_USER_PASSWORD` (mínimo 16 caracteres) e executando `npm --prefix api run seed:dev`. O comando exige opt-in explícito, nunca aceita execução com `NODE_ENV=production` e não altera credenciais existentes; não há credenciais de demonstração comitadas.
+5. Abrir `http://localhost:5173`, Swagger em `http://localhost:3000/api/docs` (somente `NODE_ENV=development` ou `ENABLE_SWAGGER=true`) e MailHog quando necessário.
+6. Entrar em `/login`. OpenAI fica desativada por padrão; para habilitá-la, configure `OPENAI_API_KEY` e use a sessão de administrador para chamar `PATCH /api/v1/organization/settings/ai-opt-in` com `{ "aiOptIn": true }`. A alteração é auditada e pode ser revertida com `false`.
 
 ## Cenário principal ponta a ponta
 
@@ -39,7 +40,7 @@ Este guia descreve a validação esperada após implementação. Ele não substi
 ## Quality gates esperados
 
 - O comando de verificação do repositório passa, incluindo TypeScript estrito, testes Python e testes existentes.
-- Testes de integração cobrem migrations, RLS com duas organizações, rotação/revogação de refresh token, pipeline ClamAV/OCR e recuperação de outbox/fila.
-- Testes de contrato validam OpenAPI e os dois sentidos do envelope BullMQ contra Redis real.
-- Testes ponta a ponta reproduzem o cenário principal e os controles de segurança acima.
+- `npm run verify` cobre typecheck, testes disponíveis de API/web/worker e contratos. Os testes atuais de integração usam sobretudo funções de domínio e doubles; validação real com PostgreSQL/Redis/Docker Compose ainda requer executar o cenário de integração provisionado.
+- Os schemas compartilhados validam o envelope BullMQ no API e worker; os testes de contrato locais não iniciam Redis real.
+- O cenário Docker ponta a ponta com duas organizações e resiliência a indisponibilidade deve ser executado em ambiente com Docker e credenciais de teste antes de promoção.
 - Prometheus apresenta métricas de filas, workers e dependências; Pino permite correlacionar uma requisição ao job sem expor conteúdo ou segredos.

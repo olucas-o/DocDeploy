@@ -7,6 +7,7 @@ import { TenantTransactionService } from "../../database/tenant-transaction.serv
 import { processingJobSchema } from "./processing-job.schema.js";
 import { PROCESSING_RUN_STATES, PROCESSING_RUN_TRANSITIONS, ProcessingResultsService, type ProcessingCompletionPayload } from "./processing-results.service.js";
 import { redisConnection } from "./redis.connection.js";
+import { StorageService } from "../storage/storage.service.js";
 
 const states = new Set<string>(PROCESSING_RUN_STATES);
 const transitions = PROCESSING_RUN_TRANSITIONS;
@@ -19,6 +20,7 @@ export class QueueEventsListener implements OnModuleInit, OnModuleDestroy {
     @InjectQueue("document-processing.v1") private readonly queue: Queue,
     private readonly transactions: TenantTransactionService,
     private readonly results: ProcessingResultsService,
+    private readonly storage: StorageService,
   ) {}
   onModuleInit(): void {
     this.events.on("active", ({ jobId }) => this.safe(() => this.fromJob(jobId, "ACTIVE")));
@@ -46,8 +48,19 @@ export class QueueEventsListener implements OnModuleInit, OnModuleDestroy {
     const identity = job ? processingIdentity(job.data) : undefined;
     if (!job || !identity) return;
     const parsedResult = parseCompletionResult(job.returnvalue);
-    if (!parsedResult) { await this.persist(identity.tenantId, identity.idempotencyKey, jobId, "COMPLETED", 100); return; }
-    await this.results.persistCompletion({ idempotencyKey: identity.idempotencyKey, result: parsedResult });
+    if (!parsedResult) throw new Error("Completed processing job did not return a valid compact result; completion remains eligible for reconciliation");
+    if (parsedResult.tenantId !== identity.tenantId || parsedResult.documentVersionId !== identity.documentVersionId || parsedResult.correlationId !== identity.correlationId) {
+      throw new Error("Completed processing result identity does not match its queue envelope");
+    }
+    const extractedFields = parsedResult.extractedDataRef ? await this.extractedFields(identity.tenantId, parsedResult.extractedDataRef) : [];
+    await this.results.persistCompletion({ idempotencyKey: identity.idempotencyKey, result: parsedResult, extractedFields });
+  }
+  async reconcileCompleted(jobId: string): Promise<void> {
+    const job = await this.queue.getJob(jobId);
+    const identity = job ? processingIdentity(job.data) : undefined;
+    if (!job || !identity) return;
+    await this.persist(identity.tenantId, identity.idempotencyKey, jobId, "ACTIVE", 100);
+    await this.handleCompleted(jobId);
   }
   private async handleFailure(jobId: string): Promise<void> {
     const job = await this.queue.getJob(jobId);
@@ -59,11 +72,19 @@ export class QueueEventsListener implements OnModuleInit, OnModuleDestroy {
   private safe(operation: () => Promise<void>): void {
     void operation().catch((error: unknown) => this.logger.error("Queue event could not be persisted", error instanceof Error ? error.stack : undefined));
   }
+
+  private async extractedFields(organizationId: string, reference: string) {
+    const artifact = await this.storage.readDerivedJson(organizationId, reference);
+    if (!artifact || typeof artifact !== "object" || !("fields" in artifact) || !Array.isArray(artifact.fields)) return [];
+    return artifact.fields.filter((field): field is { key: string; value: string | null; source?: "local" | "ocr" | "ai" | "human"; page?: number | null; excerpt?: string | null; confidence?: number | null } =>
+      Boolean(field) && typeof field === "object" && typeof field.key === "string" && (typeof field.value === "string" || field.value === null),
+    );
+  }
 }
 
-function processingIdentity(data: unknown): { tenantId: string; idempotencyKey: string } | undefined {
+function processingIdentity(data: unknown): { tenantId: string; idempotencyKey: string; documentVersionId: string; correlationId: string } | undefined {
   const parsed = processingJobSchema.safeParse(data);
-  return parsed.success ? { tenantId: parsed.data.tenantId, idempotencyKey: parsed.data.idempotencyKey } : undefined;
+  return parsed.success ? { tenantId: parsed.data.tenantId, idempotencyKey: parsed.data.idempotencyKey, documentVersionId: parsed.data.documentVersionId, correlationId: parsed.data.correlationId } : undefined;
 }
 
 function parseCompletionResult(raw: unknown): ProcessingCompletionPayload | undefined {
@@ -71,7 +92,11 @@ function parseCompletionResult(raw: unknown): ProcessingCompletionPayload | unde
   if (!value || typeof value !== "object") return undefined;
   const candidate = value as Record<string, unknown>;
   if (candidate.schemaVersion !== 1 || (candidate.outcome !== "completed" && candidate.outcome !== "rejected")) return undefined;
-  if (typeof candidate.tenantId !== "string" || typeof candidate.documentVersionId !== "string" || typeof candidate.checksum !== "string") return undefined;
+  if (typeof candidate.correlationId !== "string" || typeof candidate.tenantId !== "string" || typeof candidate.documentVersionId !== "string") return undefined;
+  if (!Array.isArray(candidate.artifactRefs) || !candidate.artifactRefs.every((reference) => typeof reference === "string")) return undefined;
+  if (typeof candidate.checksum !== "string" || typeof candidate.processorVersion !== "string" || typeof candidate.durationMs !== "number" || candidate.durationMs < 0) return undefined;
+  if (candidate.extractedDataRef !== undefined && candidate.extractedDataRef !== null && typeof candidate.extractedDataRef !== "string") return undefined;
+  if (candidate.outcome === "rejected" && typeof candidate.rejectionCode !== "string") return undefined;
   return candidate as unknown as ProcessingCompletionPayload;
 }
 

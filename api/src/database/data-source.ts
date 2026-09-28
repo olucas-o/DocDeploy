@@ -21,9 +21,12 @@ import { AuditProtection002 } from "./migrations/002-audit-protection.js";
 import { ProcessingClaims0025 } from "./migrations/0025-processing-claims.js";
 import { Documents003 } from "./migrations/003-documents.js";
 import { ReviewsAndExtraction004 } from "./migrations/004-reviews-and-extraction.js";
+import { ConfirmedDuplicateVersions005 } from "./migrations/005-confirmed-duplicate-versions.js";
+import { ProcessingCompletionRecovery006 } from "./migrations/006-processing-completion-recovery.js";
+import { OrganizationAiOptIn007 } from "./migrations/007-organization-ai-opt-in.js";
 
 export const entities = [Organization, User, OrganizationMembership, Session, AuditEvent, OutboxEvent, Notification, ProcessingRun, Document, DocumentVersion, StoredArtifact, ExtractedField, Review, ReviewTask, ReviewComment];
-export const migrations = [BaseTenancy001, AuditProtection002, ProcessingClaims0025, Documents003, ReviewsAndExtraction004];
+export const migrations = [BaseTenancy001, AuditProtection002, ProcessingClaims0025, Documents003, ReviewsAndExtraction004, ConfirmedDuplicateVersions005, ProcessingCompletionRecovery006, OrganizationAiOptIn007];
 const migrationUrl = process.env.MIGRATIONS_DATABASE_URL ?? process.env.DATABASE_URL;
 
 export default new DataSource({

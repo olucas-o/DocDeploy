@@ -1,1 +1,24 @@
-groups: []
+groups:
+  - name: docdeploy-worker
+    rules:
+      - alert: WorkerDeadLetterQueueNotEmpty
+        expr: increase(docdeploy_dead_lettered_jobs_total[5m]) > 0
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Document processing jobs are reaching the dead-letter queue"
+      - alert: DocumentProcessingQueueAging
+        expr: docdeploy_queue_job_age_seconds > 300
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "The oldest document processing job is more than five minutes old"
+      - alert: WorkerDependencyUnavailable
+        expr: docdeploy_dependency_available == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "A configured document worker dependency is unavailable"

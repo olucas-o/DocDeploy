@@ -108,17 +108,17 @@ description: "Tarefas executáveis para Governança de Documentos"
 
 ### Implementation for User Story 2
 
-- [ ] T044 [P] [US2] Criar entidades `ExtractedField`, `Review`, `ReviewTask` e `ReviewComment` em `api/src/database/entities/extracted-field.entity.ts`, `api/src/database/entities/review.entity.ts`, `api/src/database/entities/review-task.entity.ts` e `api/src/database/entities/review-comment.entity.ts`
+- [X] T044 [P] [US2] Criar entidades `ExtractedField`, `Review`, `ReviewTask` e `ReviewComment` em `api/src/database/entities/extracted-field.entity.ts`, `api/src/database/entities/review.entity.ts`, `api/src/database/entities/review-task.entity.ts` e `api/src/database/entities/review-comment.entity.ts`
 - [X] T045 [US2] Criar migration que preserva valor/origem anterior na correção humana e exige justificativa para rejeição/devolução em `api/src/database/migrations/004-reviews-and-extraction.ts`
-- [ ] T046 [US2] Implementar consumidor de scan que valida assinatura/formato/limites, usa ClamAV privado e mantém conteúdo inacessível em falha (`fail closed`) em `worker/app/processors/virus_scan.py`
-- [ ] T047 [US2] Implementar extração local PyMuPDF, pdfplumber apenas para tabela/layout, OCR Tesseract controlado e limite Pillow de pixels em `worker/app/processors/extraction.py`, `worker/app/processors/ocr.py` e `worker/app/processors/image_safety.py`
-- [ ] T048 [US2] Implementar promoção para `clean/` somente após `SCAN_PASSED`, artefatos determinísticos e resultado compacto com referências/hash/páginas em `worker/app/processors/artifact_persistence.py` e `worker/app/consumers/document_processing.py`
+- [X] T046 [US2] Implementar consumidor de scan que valida assinatura/formato/limites, usa ClamAV privado e mantém conteúdo inacessível em falha (`fail closed`) em `worker/app/processors/virus_scan.py`
+- [X] T047 [US2] Implementar extração local PyMuPDF, pdfplumber apenas para tabela/layout, OCR Tesseract controlado e limite Pillow de pixels em `worker/app/processors/extraction.py`, `worker/app/processors/ocr.py` e `worker/app/processors/image_safety.py`
+- [X] T048 [US2] Implementar promoção para `clean/` somente após `SCAN_PASSED`, artefatos determinísticos e resultado compacto com referências/hash/páginas em `worker/app/processors/artifact_persistence.py` e `worker/app/consumers/document_processing.py`
 - [X] T049 [US2] Implementar persistência API de `ProcessingRun`, `ExtractedField` e transições monotônicas, revalidando tenant, versão, hash e chave de idempotência em `api/src/modules/processing/processing-results.service.ts`
 - [X] T050 [US2] Implementar extração mínima de identificador, emissor/origem, data relevante e valor quando houver, marcando campos ausentes/incertos para revisão, em `api/src/modules/processing/extracted-fields.service.ts`
 - [X] T051 [US2] Implementar workflow de revisão, correção auditada, pendência com responsável/prazo opcional/resolução e decisão autorizada em `api/src/modules/reviews/reviews.service.ts` e `api/src/modules/reviews/reviews.controller.ts`
 - [X] T052 [P] [US2] Implementar consulta de status/progresso persistido e solicitação administrativa auditada de reprocessamento em `api/src/modules/processing/processing.controller.ts`
-- [ ] T053 [P] [US2] Implementar página de detalhe que mostra progresso, origem/página/confiança do campo e acesso ao original somente após scan em `web/src/features/documents/DocumentDetailPage.tsx`
-- [ ] T054 [P] [US2] Implementar formulário de revisão, correção com justificativa, pendências, comentários e decisões em `web/src/features/reviews/ReviewPanel.tsx` e `web/src/features/reviews/review-api.ts`
+- [X] T053 [P] [US2] Implementar página de detalhe que mostra progresso, origem/página/confiança do campo e acesso ao original somente após scan em `web/src/features/documents/DocumentDetailPage.tsx`
+- [X] T054 [P] [US2] Implementar formulário de revisão, correção com justificativa, pendências, comentários e decisões em `web/src/features/reviews/ReviewPanel.tsx` e `web/src/features/reviews/review-api.ts`
 
 **Checkpoint**: A versão limpa progride de forma idempotente até revisão; cada correção, pendência e decisão autorizada conserva autor, data, motivo e evidência de origem.
 
@@ -139,13 +139,13 @@ description: "Tarefas executáveis para Governança de Documentos"
 
 ### Implementation for User Story 3
 
-- [ ] T059 [US3] Implementar criação de nova versão que preserva arquivo/hash anterior, mantém relação documental, solicita confirmação de duplicidade e inicia revisão para versão de documento rejeitado em `api/src/modules/document-versions/document-versions.service.ts`
-- [ ] T060 [US3] Implementar consulta e comparação de versões que expõe a versão vigente e impede leitura de objetos ainda em quarentena em `api/src/modules/document-versions/document-version-query.service.ts` e `api/src/modules/document-versions/document-versions.controller.ts`
-- [ ] T061 [US3] Implementar timeline consultável, filtros por período/documento/participante e autorização sem revelar recursos de outro tenant em `api/src/modules/audit/audit-query.service.ts` e `api/src/modules/audit/audit.controller.ts`
-- [ ] T062 [US3] Implementar exportação legível dos mesmos eventos filtrados, limitada a 1.000 eventos e com checkpoint de integridade por organização em `api/src/modules/audit/audit-export.service.ts`
-- [ ] T063 [P] [US3] Implementar interface de comparação e indicação inequívoca da versão vigente em `web/src/features/documents/DocumentVersionCompare.tsx`
-- [ ] T064 [P] [US3] Implementar timeline com filtros e exportação em `web/src/features/audit/AuditTimelinePage.tsx` e `web/src/features/audit/audit-api.ts`
-- [ ] T065 [US3] Registrar notificações de nova versão, pendência e decisão somente a partir de eventos de negócio persistidos em `api/src/modules/notifications/notifications.service.ts`
+- [X] T059 [US3] Implementar criação de nova versão que preserva arquivo/hash anterior, mantém relação documental, solicita confirmação de duplicidade e inicia revisão para versão de documento rejeitado em `api/src/modules/document-versions/document-versions.service.ts`
+- [X] T060 [US3] Implementar consulta e comparação de versões que expõe a versão vigente e impede leitura de objetos ainda em quarentena em `api/src/modules/document-versions/document-version-query.service.ts` e `api/src/modules/document-versions/document-versions.controller.ts`
+- [X] T061 [US3] Implementar timeline consultável, filtros por período/documento/participante e autorização sem revelar recursos de outro tenant em `api/src/modules/audit/audit-query.service.ts` e `api/src/modules/audit/audit.controller.ts`
+- [X] T062 [US3] Implementar exportação legível dos mesmos eventos filtrados, limitada a 1.000 eventos e com checkpoint de integridade por organização em `api/src/modules/audit/audit-export.service.ts`
+- [X] T063 [P] [US3] Implementar interface de comparação e indicação inequívoca da versão vigente em `web/src/features/documents/DocumentVersionCompare.tsx`
+- [X] T064 [P] [US3] Implementar timeline com filtros e exportação em `web/src/features/audit/AuditTimelinePage.tsx` e `web/src/features/audit/audit-api.ts`
+- [X] T065 [US3] Registrar notificações de nova versão, pendência e decisão somente a partir de eventos de negócio persistidos em `api/src/modules/notifications/notifications.service.ts`
 
 **Checkpoint**: O auditor obtém uma visão consistente de versões e eventos, e a exportação reproduz exatamente o conjunto autorizado exibido na consulta.
 
@@ -157,9 +157,9 @@ description: "Tarefas executáveis para Governança de Documentos"
 
 - [ ] T066 [P] Criar teste E2E Docker Compose do quickstart com duas organizações, upload, pipeline, revisão, segunda versão e exportação em `api/test/e2e/document-governance.e2e-spec.ts`
 - [ ] T067 [P] Criar testes de resiliência para reinício durante OCR, indisponibilidade de Redis/storage/OpenAI, retry/backoff, alerta e DLQ em `worker/tests/integration/test_processing_resilience.py` e `api/test/integration/processing-resilience.integration-spec.ts`
-- [ ] T068 [P] Implementar OpenAI opt-in por organização, minimização/redação de texto, `store: false` quando compatível e resultados apenas sugestivos/revisáveis em `api/src/modules/openai/openai.service.ts` e `worker/app/processors/openai_analysis.py`
-- [ ] T069 [P] Criar métricas/alertas de fila, worker e dependências, incluindo DLQ e fila envelhecida, em `infra/prometheus/alerts.yml` e `worker/app/observability/metrics.py`
-- [ ] T070 Atualizar o guia operacional de ambiente, migrations, OpenAPI protegido, recuperação de job e validação de quickstart em `README.md` e `specs/001-document-governance/quickstart.md`
+- [X] T068 [P] Implementar OpenAI opt-in por organização, minimização/redação de texto, `store: false` quando compatível e resultados apenas sugestivos/revisáveis em `api/src/modules/organization/organization-settings.controller.ts` e `worker/app/processors/openai_analysis.py`
+- [X] T069 [P] Criar métricas/alertas de fila, worker e dependências, incluindo DLQ e fila envelhecida, em `infra/prometheus/alerts.yml` e `worker/app/observability/metrics.py`
+- [X] T070 Atualizar o guia operacional de ambiente, migrations, OpenAPI protegido, recuperação de job e validação de quickstart em `README.md` e `specs/001-document-governance/quickstart.md`
 - [ ] T071 Executar a validação de qualidade, contratos, integração e quickstart em `package.json`, `docker-compose.yml` e `.github/workflows/ci.yml`
 
 ---
