@@ -38,6 +38,13 @@ Use `pytest` for Python changes and name tests `test_<behavior>.py`, such as
 Test command-line behavior, errors, and filesystem effects with temporary directories.
 Update this guide and project commands when a runner is introduced.
 
+Use `.agents/skills/test-driven-development` before implementing features, bug
+fixes, refactors, or behavior changes. Follow red-green-refactor: write one
+failing behavior test first, verify the expected failure, implement the minimal
+change, then run the relevant test and the complete `npm run verify` gate.
+Prefer tests at public interfaces and system boundaries, derive expected values
+independently, and mock only slow or external dependencies when unavoidable.
+
 ## Mandatory Code-Quality Subagent
 
 After every edit to a code or configuration file, the primary Codex agent MUST
