@@ -45,6 +45,28 @@ change, then run the relevant test and the complete `npm run verify` gate.
 Prefer tests at public interfaces and system boundaries, derive expected values
 independently, and mock only slow or external dependencies when unavoidable.
 
+### Required Regression Checklist for Every Future Change
+
+- For every feature, bug fix, or behavior change, add or update automated tests
+  covering the new behavior, relevant failure cases, and affected existing flows.
+- Before changing production behavior, run the new test and confirm that it
+  fails for the intended reason; then implement and verify the minimal fix.
+- For coverage of existing behavior, add regression tests at public boundaries;
+  identify the concrete regression each test would catch. Do not rewrite working
+  production code merely to force a red test.
+- Keep new tests discoverable by the existing runners: API tests in `api/test/`,
+  frontend tests in `web/src/test/`, and worker tests in `worker/tests/`.
+  Wire any new test suite into the root `npm run verify` command.
+- Run affected tests during development and the complete `npm run verify` gate
+  after the final code or configuration edit, including test-only changes and
+  refactors. The required `code_quality` subagent must also perform its review
+  and final verification as specified below.
+- Never skip, delete, or weaken a valid regression assertion just to make the
+  gate pass. Report failed or unavailable checks explicitly; do not claim a
+  successful verification when the gate did not finish with exit code zero.
+- In the completion report, state the behavior protected by the tests and the
+  verification result. Documentation-only edits do not require artificial tests.
+
 ## Mandatory Code-Quality Subagent
 
 After every edit to a code or configuration file, the primary Codex agent MUST
